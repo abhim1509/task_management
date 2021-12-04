@@ -4,11 +4,6 @@ const validator = require("validator");
 //const jwt = require('jsonwebtoken')
 const userSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
     email: {
       type: String,
       required: true,
@@ -32,11 +27,9 @@ const userSchema = new mongoose.Schema(
         }
       },
     },
-    tokens: [
-      {
-        type: String,
-      },
-    ],
+    token: {
+      type: String,
+    },
   },
   {
     timestamps: true,

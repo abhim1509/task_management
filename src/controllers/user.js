@@ -12,6 +12,8 @@ const {
   HTTP_STATUS_NOT_FOUND,
 } = require("../utils/constants/index");
 
+const bcrypt = require("bcryptjs");
+
 modelUser = User;
 
 router.getSpecificUser = async function getSpecificUser(req, res) {
@@ -19,9 +21,9 @@ router.getSpecificUser = async function getSpecificUser(req, res) {
     const _id = req.params.userId;
 
     if (!_id || typeof _id != "string") {
-      //throw new Error("User id is not appropriate.");
-      //Send response
+      res.status(HTTP_BAD_REQUEST).send("User id is not appropriate.");
     }
+
     const result = await db_wrapper.getRecord(modelUser, _id);
     if (!result.resultSet) {
       return res.status(HTTP_SUCCESS_RETRIEVED).send(result.message);
@@ -37,16 +39,33 @@ router.getSpecificUser = async function getSpecificUser(req, res) {
 router.createUser = async function createUser(req, res) {
   try {
     const body = req.body;
-    if (!body || data_sanitisation.isObjectOrArrayEmpty(body)) {
-      throw new Error("Request body is not appropriate.");
+    console.log(body);
+    if (!body || !body.email || !body.password) {
+      return res
+        .status(HTTP_BAD_REQUEST)
+        .send(" Request body is not appropriate.");
     }
 
-    const user = await db_wrapper.createSingleRecord(modelUser, body);
-    if (!user.resultSet) {
-      res.status(HTTP_STATUS_NOT_FOUND).send(user.message);
+    //Check if user already exists.
+    const result = await db_wrapper.getRecord(modelUser, { email: body.email });
+
+    if (!data_sanitisation.isObjectOrArrayEmpty(result.resultSet)) {
+      return res.status(HTTP_BAD_REQUEST).send(result.message);
     }
 
-    res.status(HTTP_SUCCESS_CREATION).send(user);
+    const encryptedPassword = await bcrypt.hash(body.password, 8);
+    const userToSave = {
+      email: body.email.toLowerCase(),
+      password: encryptedPassword,
+    };
+
+    const userObj = await db_wrapper.createSingleRecord(modelUser, userToSave);
+    const userResult = userObj.resultSet;
+    if (!userObj || !userResult) {
+      res.status(HTTP_STATUS_NOT_FOUND).send(userObj.message);
+    }
+
+    res.status(HTTP_SUCCESS_CREATION).send(userResult);
   } catch (e) {
     console.log(e);
     res.status(HTTP_BAD_REQUEST).send();

@@ -1,30 +1,31 @@
-userSchema.methods.generateAuthToken = async function(){
-    const user = this
-    const token = jwt.sign({ _id : user._id.toString()},"thisismywebtoken")
-    user.tokens.push(token)
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const tokenKey = "checkchecktoken";
 
-    
-    await user.save()
-    return token
-}
+const createToken = function (userId, email) {
+  return jwt.sign({ userId, email }, tokenKey, { expiresIn: "2h" });
+};
 
-userSchema.statics.findByCredentials = async (email, password) =>{
-    const user = await User.findOne({email})
-    if(!user){
-        throw new Error("Unable to login");
-    }
-    const isMatch = await bcrypt.compare(password, user.password)
-    if(!isMatch){
-        throw new Error("Unable to login") //providing single type of error message, thus not providing too much info related to creds.
-    }
-    return user
-}
+const verifyToken = (req, res, next) => {
+  const token = req.headers["authorization"];
 
-userSchema.pre('save', async function(next){
-    const user = this
-    if(user.isModified('password')){
-        user.password = await bcrypt.hash(user.password, 8)
-    }
-    next()
-})
+  if (!token) {
+    return res.status(403).send("A token is required for authentication");
+  }
+  try {
+    const decoded = jwt.verify(token, tokenKey);
+    console.log(decoded);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).send("Invalid Token");
+  }
+};
 
+const expireToken = function (userId, email) {
+  console.log(jwt.sign({ userId, email }, tokenKey, { expiresIn: "1s" }));
+};
+
+module.exports.createToken = createToken;
+module.exports.verifyToken = verifyToken;
+module.exports.expireToken = expireToken;

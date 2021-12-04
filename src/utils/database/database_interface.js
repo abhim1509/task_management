@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const data_sanitisation = require("./../utilities/data_sanitisation");
 
 //Create
 module.exports.createSingleRecord = async (model, payload) => {
@@ -20,11 +21,13 @@ module.exports.createSingleRecord = async (model, payload) => {
 //Read
 module.exports.getRecord = async (model, query) => {
   try {
-    const resultSet = await model.findById(query);
+    const resultSet = await model.findOne(query);
     if (!resultSet) {
       return prepareResponse("Result Set is not appropriate.");
     }
-
+    if (data_sanitisation.isObjectOrArrayEmpty(resultSet)) {
+      return prepareResponse("Record details empty.", false, resultSet);
+    }
     return prepareResponse("Record details found.", true, resultSet);
   } catch (error) {
     console.log(error);
