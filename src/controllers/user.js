@@ -39,7 +39,7 @@ router.getSpecificUser = async function getSpecificUser(req, res) {
 router.createUser = async function createUser(req, res) {
   try {
     const body = req.body;
-    console.log(body);
+    console.log("body", body);
     if (!body || !body.email || !body.password) {
       return res
         .status(HTTP_BAD_REQUEST)
@@ -48,8 +48,11 @@ router.createUser = async function createUser(req, res) {
 
     //Check if user already exists.
     const result = await db_wrapper.getRecord(modelUser, { email: body.email });
-
-    if (!data_sanitisation.isObjectOrArrayEmpty(result.resultSet)) {
+    console.log("result", result);
+    if (
+      result.resultSet &&
+      !data_sanitisation.isObjectOrArrayEmpty(result.resultSet)
+    ) {
       return res.status(HTTP_BAD_REQUEST).send(result.message);
     }
 
@@ -65,7 +68,12 @@ router.createUser = async function createUser(req, res) {
       res.status(HTTP_STATUS_NOT_FOUND).send(userObj.message);
     }
 
-    res.status(HTTP_SUCCESS_CREATION).send(userResult);
+    const userResponse = {
+      email: userResult.email,
+      createdAt: userResult.createdAt,
+      userId: userResult._id,
+    };
+    res.status(HTTP_SUCCESS_CREATION).send(userResponse);
   } catch (e) {
     console.log(e);
     res.status(HTTP_BAD_REQUEST).send();

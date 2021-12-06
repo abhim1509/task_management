@@ -14,6 +14,7 @@ const {
 } = require("../utils/constants/index");
 const bcrypt = require("bcryptjs");
 const authMiddleware = require("./../middlewares/auth");
+const { updateRecord } = require("../utils/database/database_wrapper");
 modelUser = User;
 
 router.registerUser = async function registerUser(req, res) {
@@ -23,33 +24,55 @@ router.registerUser = async function registerUser(req, res) {
 router.login = async function login(req, res) {
   try {
     const body = req.body;
-    console.log(body);
+    //console.log(body);
     if (!body || !body.email || !body.password) {
       return res
         .status(HTTP_BAD_REQUEST)
         .send(" Request body is not appropriate.");
     }
 
-    //Check if user already exists.
+    //Check if user exists.
     const userObj = await db_wrapper.getRecord(modelUser, {
       email: body.email,
     });
-    const userResult = userObj.resultSet;
-    console.log(body.password, userResult.password);
+
+    var userResult = userObj.resultSet;
+    //console.log("userResult", userResult);
+    //console.log(body.password, userResult.password);
+
     if (
-      userResult &&
+      userResult.password &&
       (await bcrypt.compare(body.password, userResult.password))
     ) {
-      const token = authMiddleware.createToken(
-        userResult.userId,
-        userResult.email
-      );
+      //console.log("inside if - userObj", userObj);
+      const { resultSet } = userObj;
+      const userId = resultSet._id;
+      const email = resultSet.email;
+      const token = authMiddleware.createToken(userId, email);
 
-      userResult.token = token;
-      //console.log(userResult);
+      resultSet.token = token;
+
+      const updatedUserObj = await db_wrapper.updateRecord(
+        modelUser,
+        {
+          email: body.email,
+        },
+        resultSet
+      );
+      const userResult = updatedUserObj.resultSet;
+      if (!updatedUserObj || !userResult) {
+        res.status(HTTP_STATUS_NOT_FOUND).send(updatedUserObj.message);
+      }
+
+      const userResponse = {
+        email: userResult.email,
+        token: userResult.token,
+        userId: userResult._id,
+      };
+      console.log(userResult);
+      res.setHeader("authorization", userResult.token);
+      res.status(HTTP_SUCCESS_RETRIEVED).send(userResponse);
     }
-    res.setHeader("authorization", userResult.token);
-    res.status(HTTP_SUCCESS_RETRIEVED).send({ email: userResult.email });
   } catch (e) {
     console.log(e);
     res.status(HTTP_BAD_REQUEST).send();
@@ -79,6 +102,14 @@ router.logout = async function logout(req, res) {
       userObj.resultSet.userId,
       userObj.resultSet.email
     );
+    const updatedUserObj = await updateRecord(
+      modelUser,
+      {
+        email: userObj.resultSet.email,
+      },
+      userObj.resultSet
+    );
+
     res.status(HTTP_SUCCESS_RETRIEVED).send("User logged out successfully.");
   } catch (e) {
     console.log(e);

@@ -1,11 +1,4 @@
 const mongoose = require("mongoose");
-const { getDatabaseConfig } = require("./../configuration/index");
-//console.log(getDatabaseConfig())
-//const DB_URL = getDatabaseConfig().url;
-//const DB_DOCUMENT = getDatabaseConfig().document;
-//const DB_URI = `${DB_URL}//${DB_DOCUMENT}`
-
-//console.log(`${DB_URI} ${DB_URI}`);
 
 const DB_URL = "mongodb://127.0.0.1:27017/task-manager";
 

@@ -6,7 +6,7 @@ const authController = require("./../controllers/authentication");
 //const auth = require('./../middlewares/auth')
 
 router.post("/register", authController.registerUser);
-router.get("/login", authController.login);
+router.put("/login", authController.login);
 router.put("/logout", verifyToken, authController.logout);
 
 module.exports = router;
