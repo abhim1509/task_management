@@ -11,6 +11,11 @@ router.get(
   verifyToken,
   taskController.getSpecificTask
 );
+router.put(
+  "/users/:userId/tasks/:taskId",
+  verifyToken,
+  taskController.editSpecificTask
+);
 router.delete(
   "/users/:userId/tasks/:taskId",
   verifyToken,

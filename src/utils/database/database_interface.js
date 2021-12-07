@@ -35,10 +35,10 @@ module.exports.getRecord = async (model, query) => {
   }
 };
 
-module.exports.getRecords = async (model, query) => {
+module.exports.getRecords = async (model, query, sort = { createdAt: 1 }) => {
   try {
     console.log(query);
-    const resultSet = await model.find(query);
+    const resultSet = await model.find(query).sort(sort);
     if (!resultSet || resultSet.length === 0) {
       return prepareResponse("No records found");
     }

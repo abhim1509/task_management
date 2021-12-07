@@ -12,8 +12,8 @@ module.exports.updateRecord = async (model, query, payload) => {
   return await db_calls.updateRecord(model, query, payload);
 };
 
-module.exports.getRecords = async (model, query) => {
-  return await db_calls.getRecords(model, query);
+module.exports.getRecords = async (model, query, sort) => {
+  return await db_calls.getRecords(model, query, sort);
 };
 
 module.exports.deleteRecord = async (model, id) => {

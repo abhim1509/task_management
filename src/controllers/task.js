@@ -29,7 +29,7 @@ router.createTask = async function createTask(req, res) {
     }
 
     const getUser = await db_wrapper.getRecord(modelUser, { _id: userId });
-    console.log(getUser);
+    //console.log(getUser);
     if (!getUser || !getUser.resultSet || !getUser.resultSet._id) {
       res
         .status(HTTP_BAD_REQUEST)
@@ -74,6 +74,7 @@ router.getSpecificTask = async function getSpecificTask(req, res) {
 
 router.getTasksList = async function getTasksList(req, res) {
   try {
+    console.log(req.params.userId);
     const userId = req.params.userId;
     if (!req.params || !userId) {
       res.status(HTTP_BAD_REQUEST).send("Missing parameter.");
@@ -81,15 +82,13 @@ router.getTasksList = async function getTasksList(req, res) {
     let sort = {
       priority: 1,
     };
-    /*     console.log({
-      createdBy: userId,
-      options: {
-        sort, //sort not working.
+    const taskList = await db_wrapper.getRecords(
+      modelTask,
+      {
+        createdBy: userId,
       },
-    });
- */ const taskList = await db_wrapper.getRecords(modelTask, {
-      createdBy: userId,
-    });
+      sort
+    );
     //console.log("taskList", taskList);
     if (!taskList || !taskList.resultSet) {
       return res.status(HTTP_STATUS_NOT_FOUND).send("No records found.");
@@ -98,6 +97,46 @@ router.getTasksList = async function getTasksList(req, res) {
     res.status(HTTP_SUCCESS_RETRIEVED).send(taskList);
   } catch (e) {
     res.status(HTTP_BAD_REQUEST).send(e);
+  }
+};
+
+router.editSpecificTask = async function editSpecificTask(req, res) {
+  try {
+    let body = req.body;
+    const userId = req.params.userId;
+    const taskId = req.params.taskId;
+    if (!body || data_sanitisation.isObjectOrArrayEmpty(body) || !userId) {
+      res
+        .status(HTTP_BAD_REQUEST)
+        .send("Request body/user is is not appropriate.");
+    }
+
+    const getUser = await db_wrapper.getRecord(modelUser, {
+      _id: userId,
+    });
+    console.log(getUser);
+    if (!getUser || !getUser.resultSet || !getUser.resultSet._id) {
+      res
+        .status(HTTP_BAD_REQUEST)
+        .send("An error while retrieving user information.");
+    }
+    console.log("taskId", taskId);
+    console.log("getUser.resultSet._id", getUser.resultSet._id);
+    //body.createdBy = getUser.resultSet._id;
+    const task = await db_wrapper.updateRecord(
+      modelTask,
+      { _id: taskId, createdBy: getUser.resultSet._id },
+      body
+    );
+
+    if (!task || !task.resultSet) {
+      res.status(HTTP_BAD_REQUEST).send("An error while creating task.");
+    }
+
+    res.status(HTTP_SUCCESS_RETRIEVED).send(task);
+  } catch (e) {
+    console.log(e);
+    res.status(HTTP_BAD_REQUEST).send();
   }
 };
 
