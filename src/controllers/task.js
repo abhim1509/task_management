@@ -21,7 +21,7 @@ router.createTask = async function createTask(req, res) {
   try {
     let body = req.body;
     const userId = req.params.userId;
-
+    console.log("body", body);
     if (!body || data_sanitisation.isObjectOrArrayEmpty(body) || !userId) {
       res
         .status(HTTP_BAD_REQUEST)
@@ -29,7 +29,7 @@ router.createTask = async function createTask(req, res) {
     }
 
     const getUser = await db_wrapper.getRecord(modelUser, { _id: userId });
-    //console.log(getUser);
+
     if (!getUser || !getUser.resultSet || !getUser.resultSet._id) {
       res
         .status(HTTP_BAD_REQUEST)
@@ -79,9 +79,11 @@ router.getTasksList = async function getTasksList(req, res) {
     if (!req.params || !userId) {
       res.status(HTTP_BAD_REQUEST).send("Missing parameter.");
     }
-    let sort = {
+
+    const sort = {
       priority: 1,
     };
+
     const taskList = await db_wrapper.getRecords(
       modelTask,
       {
@@ -89,7 +91,8 @@ router.getTasksList = async function getTasksList(req, res) {
       },
       sort
     );
-    //console.log("taskList", taskList);
+
+    console.log("taskList", taskList);
     if (!taskList || !taskList.resultSet) {
       return res.status(HTTP_STATUS_NOT_FOUND).send("No records found.");
     }
@@ -122,7 +125,6 @@ router.editSpecificTask = async function editSpecificTask(req, res) {
     }
     console.log("taskId", taskId);
     console.log("getUser.resultSet._id", getUser.resultSet._id);
-    //body.createdBy = getUser.resultSet._id;
     const task = await db_wrapper.updateRecord(
       modelTask,
       { _id: taskId, createdBy: getUser.resultSet._id },
@@ -141,7 +143,6 @@ router.editSpecificTask = async function editSpecificTask(req, res) {
 };
 
 router.deleteTask = async function deleteTask(req, res) {
-  //console.log(req.params.id);
   try {
     const params = req.params;
     const userId = params.userId;

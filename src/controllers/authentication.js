@@ -24,7 +24,6 @@ router.registerUser = async function registerUser(req, res) {
 router.login = async function login(req, res) {
   try {
     const body = req.body;
-    //console.log(body);
     if (!body || !body.email || !body.password) {
       return res
         .status(HTTP_BAD_REQUEST)
@@ -37,14 +36,11 @@ router.login = async function login(req, res) {
     });
 
     var userResult = userObj.resultSet;
-    //console.log("userResult", userResult);
-    //console.log(body.password, userResult.password);
 
     if (
       userResult.password &&
       (await bcrypt.compare(body.password, userResult.password))
     ) {
-      //console.log("inside if - userObj", userObj);
       const { resultSet } = userObj;
       const userId = resultSet._id;
       const email = resultSet.email;
@@ -81,12 +77,8 @@ router.login = async function login(req, res) {
 
 router.logout = async function logout(req, res) {
   try {
-    //console.log(req.header("authorization"));
     const auth = req.header("authorization");
     if (!req.body || !auth || !req.body.email) {
-      //console.log("req.body", req.body);
-      //console.log("auth", auth);
-      //console.log("req.body.email", req.body.email);
       return res.status(HTTP_BAD_REQUEST).send(" Request is not appropriate.");
     }
 
@@ -102,7 +94,7 @@ router.logout = async function logout(req, res) {
       userObj.resultSet.userId,
       userObj.resultSet.email
     );
-    const updatedUserObj = await updateRecord(
+    await updateRecord(
       modelUser,
       {
         email: userObj.resultSet.email,
