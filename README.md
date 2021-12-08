@@ -1,6 +1,8 @@
 # task_management
 
-Pre-requisites: Node running on system. 
+Pre-requisites: 
+1. Node running on system.
+2. Mongo DB 
 
 Steps to run:
 1. npm install
