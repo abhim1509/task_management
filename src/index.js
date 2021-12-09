@@ -6,7 +6,7 @@ const authRouter = require("./routers/authentication");
 var cors = require("cors");
 
 const app = new express();
-const port = process.env.PORT || 4000;
+const port = 4000;
 
 connection.bootstrapDB();
 
